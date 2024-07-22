@@ -44,8 +44,8 @@
               'server_var': server_var
           } | to_json
       }}
-    url_username: "{{ snow_username }}"
-    url_password: "{{ snow_password }}"
+    # url_username: "{{ snow_username }}"
+    # url_password: "{{ snow_password }}"
     body_format: json
     headers:
       Content-Type: "application/json"
