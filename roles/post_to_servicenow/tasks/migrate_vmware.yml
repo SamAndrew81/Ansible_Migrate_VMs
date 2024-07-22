@@ -1,0 +1,67 @@
+---
+- name: Show 'ansible_*' values
+  ansible.builtin.debug:
+    msg:
+      - "{{ networks[0] }}"
+
+- name: Gather facts about the virtual machine
+  community.vmware.vmware_vm_info:
+    hostname: "{{ ansible_host }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: false
+    vm_name: "{{ server_name }}"
+  delegate_to: localhost
+  register: vm_info
+
+- name: Find the VM
+  ansible.builtin.set_fact:
+    vm_to_move: "{{ vm_info.virtual_machines[0] }}"
+  when: vm_info.virtual_machines | length > 0
+
+- name: Get current network adapter settings
+  community.vmware.vmware_guest_network:
+    hostname: "{{ ansible_host }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: false
+    name: "{{ vm_to_move.guest_name }}"
+    gather_network_info: true
+  delegate_to: localhost
+  register: current_network
+
+- name: Isolate VM to new port group
+  community.vmware.vmware_guest_network:
+    hostname: "{{ ansible_host }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: false
+    name: "{{ vm_to_move.guest_name }}"
+    network_name: "{{ dest_port_group }}"
+    device_type: vmxnet3
+    connected: true
+    start_connected: true
+    state: present
+  delegate_to: localhost
+  when:
+    - current_network.network_info | length > 0
+    - current_network.network_info[0].network_name != networks[0].name
+
+- name: Restore VM to original port group
+  community.vmware.vmware_guest_network:
+    hostname: "{{ ansible_host }}"
+    username: "{{ username }}"
+    password: "{{ password }}"
+    validate_certs: false
+    name: "{{ vm_to_move.guest_name }}"
+    network_name: "{{ networks[0].name }}"
+  delegate_to: localhost
+  when:
+    - current_network.network_info | length > 0
+    - current_network.network_info[0].network_name == networks[0].name
+
+- name: Build variable to send to SNOW
+  ansible.builtin.set_fact:
+    ticket_url: "{{ ticket_url }}"
+    vm_moved: true
+  when: vm_to_move is defined
