@@ -1,0 +1,12 @@
+- name: Build variable to send to ticket
+  ansible.builtin.set_fact:
+    server_var:
+      ticket_url: "{{ ticket_url }}"
+      running_configs: "{{ lookup('file', '/tmp/server_vars.json') | from_json | default(omit) }}"
+      pre_ping: "{{ pre_ping_test_results_var }}"
+      post_ping: "{{ post_ping_test_results_var }}"
+      error_message: "{{ error_message | default('No errors occurred during migration.') }}"
+
+- name: Debug host inventory
+  ansible.builtin.debug:
+    var: server_var

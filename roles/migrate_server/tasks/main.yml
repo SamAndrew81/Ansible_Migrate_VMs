@@ -1,0 +1,17 @@
+---
+- name: NXOS Compliance Deployment
+  ansible.builtin.include_tasks: migrate_nxos.yml
+  when: platform == "nxos"
+  vars:
+    ansible_network_os: "nxos"
+    ansible_become: "true"
+    ansible_become_method: "enable"
+    ansible_connection: "network_cli"
+
+- name: ACI Compliance Deployment
+  ansible.builtin.include_tasks: migrate_aci.yml
+  when: platform == "aci"
+
+- name: VMware Compliance Deployment
+  ansible.builtin.include_tasks: migrate_vmware.yml
+  when: platform == "vmware"

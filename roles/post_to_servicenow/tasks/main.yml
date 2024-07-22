@@ -1,17 +1,58 @@
----
-- name: NXOS Compliance Deployment
-  ansible.builtin.include_tasks: migrate_nxos.yml
-  when: platform == "nxos"
-  vars:
-    ansible_network_os: "nxos"
-    ansible_become: "true"
-    ansible_become_method: "enable"
-    ansible_connection: "network_cli"
+- name: Show Ping Test before Post
+  ansible.builtin.debug:
+    msg:
+      - "{{ server_var.ticket_url }}"
 
-- name: ACI Compliance Deployment
-  ansible.builtin.include_tasks: migrate_aci.yml
-  when: platform == "aci"
+# Initialize formatted_network_details
+- name: Initialize formatted network details variable
+  ansible.builtin.set_fact:
+    formatted_network_details: []
 
-- name: VMware Compliance Deployment
-  ansible.builtin.include_tasks: migrate_vmware.yml
-  when: platform == "vmware"
+# Setup formatted_network_details and associated data
+- name: Extract and format network details
+  ansible.builtin.set_fact:
+    formatted_network_details: >-
+      {{
+        formatted_network_details + [
+          'Name: ' + (item.name | default('N/A')) +
+          ' | Port: ' + (item.port | default([])) +
+          ' | Switch: ' + (item.switch | default([]))
+        ]
+      }}
+  loop: "{{ server_var.networks | default([]) }}"
+
+- name: Debug server_var
+  ansible.builtin.debug:
+    var: server_var
+
+- name: Debug formatted_network_details
+  ansible.builtin.debug:
+    var: formatted_network_details
+
+- name: Debug error_message before sending to SNOW
+  ansible.builtin.debug:
+    var: server_var
+
+# Send structured data to SNOW using uri module
+- name: Send data to ServiceNow
+  ansible.builtin.uri:
+    url: "{{ server_var.ticket_url }}"
+    method: POST
+    body: >-
+      {{
+          {
+              'server_var': server_var
+          } | to_json
+      }}
+    url_username: "{{ snow_username }}"
+    url_password: "{{ snow_password }}"
+    body_format: json
+    headers:
+      Content-Type: "application/json"
+    validate_certs: false
+  when: server_var.ticket_url is defined and server_var.ticket_url | length > 0
+  register: snow_response
+
+- name: Debug SNOW response
+  ansible.builtin.debug:
+    var: snow_response
