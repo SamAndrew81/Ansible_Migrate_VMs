@@ -4,6 +4,10 @@
     msg: "Pinging {{ server_name }}"
   when: ping_test_server_name is defined
 
+- name: Show DNS server inside K8s EE pod
+  ansible.builtin.command:
+    cmd: cat /etc/resolv.conf
+
 - name: Ping Server
   ansible.builtin.command:
     cmd: ping -c2 "{{ server_name }}"
