@@ -1,20 +1,33 @@
-# roles/ping_test/tasks/main.yml
-
-- name: Debug vars
-  ansible.builtin.debug:
-    var: server_name
-
+---
 - name: Printing Server (debug)
   ansible.builtin.debug:
-    msg: "Pinging server: {{ server_name }}"
+    msg: "Pinging {{ server_name }}"
+  when: ping_test_server_name is defined
 
 - name: Ping Server
   ansible.builtin.command:
-    cmd: ping -c 4 {{ server_name }}
-  register: ping_result
+    cmd: ping -c2 "{{ server_name }}"
+  register: router_ping
+  failed_when: router_ping.rc != 0
+  changed_when: false
+  ignore_errors: true
 
 - name: Save Ping Test Results as Artifacts
-  ansible.builtin.copy:
-    content: "{{ ping_result.stdout }}"
-    dest: "/tmp/ping_{{ ping_name }}_{{ server_name }}.log"
-    mode: '0644'
+  ansible.builtin.set_stats:
+    data:
+      ping_test_results: "{{ router_ping.stdout_lines }}"
+    per_host: false
+
+- name: Save Pre Ping Test Results as Variable
+  ansible.builtin.set_fact:
+    pre_ping_test_results_var: "{{ router_ping.stdout_lines }}"
+  when: ping_name == "pre"
+
+- name: Save Post Ping Test Results as Variable
+  ansible.builtin.set_fact:
+    post_ping_test_results_var: "{{ router_ping.stdout_lines }}"
+  when: ping_name == "post"
+
+- name: Show Ping Test Results
+  ansible.builtin.debug:
+    msg: "{{ router_ping.stdout_lines }}"
