@@ -2,18 +2,18 @@
 - name: Pre Migration Ping Test
   hosts: localhost
   gather_facts: false
-  vars_files:
-    - creds.yml
   vars:
     ping_name: pre
+  tasks:
+    - name: Debug all variables
+      ansible.builtin.debug:
+        var: hostvars[inventory_hostname]
   roles:
     - ping_test
 
 - name: Build dynamic inventory of interfaces to migrate
   hosts: localhost
   gather_facts: false
-  vars_files:
-    - creds.yml
   roles:
     - build_inventory
 
@@ -22,16 +22,12 @@
   connection: local
   serial: 1
   gather_facts: false
-  vars_files:
-    - creds.yml
   roles:
     - migrate_server
 
 - name: After Migration Ping Test
   hosts: localhost
   gather_facts: false
-  vars_files:
-    - creds.yml
   vars:
     ping_name: post
   roles:
@@ -40,15 +36,11 @@
 - name: Set post Migration Ping Var
   hosts: localhost
   gather_facts: false
-  vars_files:
-    - creds.yml
   roles:
     - set_migration_vars
 
 - name: Post server info to ServiceNow
   hosts: localhost
   gather_facts: false
-  vars_files:
-    - creds.yml
   roles:
     - post_to_servicenow
