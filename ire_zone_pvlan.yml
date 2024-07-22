@@ -1,0 +1,67 @@
+datacenter:
+  bdc:
+    zones:
+      "01":
+        tro_crdc_acl: 3701, 3501
+        ire_restoration: 3703, 3503
+        ire_app_validation: 3704, 3504
+      "02":
+        tro_crdc_acl: 3705, 3505
+        ire_restoration: 3707, 3507
+        ire_app_validation: 3708, 3508
+      "03":
+        tro_crdc_acl: 3709, 3509
+        ire_restoration: 3711, 3511
+        ire_app_validation: 3712, 3512
+      "04":
+        tro_crdc_acl: 3713, 3513
+        ire_restoration: 3715, 3515
+        ire_app_validation: 3716, 3516
+  ndc:
+    zones:
+      "88": # Clone Zone
+        tro_crdc_acl: 3701, 3501
+        ire_restoration: 3702, 3502
+        ire_app_validation: 3703, 3503
+      "04":
+        tro_crdc_acl: 3704, 3504
+        ire_restoration: 3705, 3505
+        ire_app_validation: 3706, 3506
+      "05":
+        tro_crdc_acl: 3707, 3507
+        ire_restoration: 3708, 3508
+        ire_app_validation: 3709, 3509
+      "08":
+        tro_crdc_acl: 3710, 3510
+        ire_restoration: 3711, 3511
+        ire_app_validation: 3712, 3512
+      "11":
+        tro_crdc_acl: 3713, 3513
+        ire_restoration: 3714, 3514
+        ire_app_validation: 3715, 3515
+      "12":
+        tro_crdc_acl: 3716, 3516
+        ire_restoration: 3717, 3517
+        ire_app_validation: 3718, 3518
+      "14":
+        tro_crdc_acl: 3719, 3519
+        ire_restoration: 3720, 3520
+        ire_app_validation: 3721, 3521
+      "39":
+        tro_crdc_acl: 3722, 3522
+        ire_restoration: 3723, 3523
+        ire_app_validation: 3724, 3524
+      "41":
+        tro_crdc_acl: 3725, 3525
+        ire_restoration: 3726, 3526
+        ire_app_validation:
+          3727, 3527
+
+          # test sync
+site_code:
+  "LCAWDC": "wdc"
+  "LCAPDC": "pdc"
+  "LCANDC": "ndc"
+  "LCACDC": "cdc"
+  "LCABDC": "bdc"
+  "LMDSIL": "sdc"
