@@ -7,6 +7,12 @@
   roles:
     - ping_test
 
+- name: Build dynamic inventory of interfaces to migrate
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - build_inventory
+
 - name: Execute migrate task based on inventory result from API call
   hosts: data_inventory
   connection: local

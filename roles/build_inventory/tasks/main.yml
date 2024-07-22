@@ -1,0 +1,85 @@
+- name: Build blank file
+  ansible.builtin.copy:
+    content: "{{ [] | to_json }}"
+    dest: "/tmp/server_vars.json"
+    mode: "0644"
+
+# Load YAML file
+- name: Load data from ire_zone_pvlan.yml
+  ansible.builtin.include_vars:
+    file: ire_zone_pvlan.yml
+    name: data
+
+# Print data out to check output
+- name: Print site, zone, and other details
+  ansible.builtin.debug:
+    msg:
+      - "Site code: {{ datacenter }}"
+      - "Zone: {{ zone }}"
+      - "Data: {{ data }}"
+      - >-
+        IRE VLAN: {{
+          (data['datacenter'][datacenter]['zones'][zone]['tro_crdc_acl']
+          if (datacenter in data['datacenter'] and
+          zone in data['datacenter'][datacenter]['zones'])
+          else 'IRE VLAN not found')
+        }}
+
+# Create and set the 'source_vlan' var
+- name: Set IRE VLAN based on loaded data and extracted site/zone
+  ansible.builtin.set_fact:
+    source_vlan: >-
+      {{
+        data['datacenter'][datacenter]['zones'][zone][source_phase|lower]
+        if source_phase|lower != 'prod'
+        else 'prod'
+      }}
+
+# Create and set the 'dest_vlan' var
+- name: Set IRE VLAN based on loaded data and extracted site/zone
+  ansible.builtin.set_fact:
+    dest_vlan: >-
+      {{
+        data['datacenter'][datacenter]['zones'][zone][dest_phase|lower]
+        if dest_phase|lower != 'prod'
+        else 'prod'
+      }}
+
+- name: Add switch-interface data to dynamic inventory
+  ansible.builtin.add_host:
+    groups: data_inventory
+
+    hostname: "{{ item.name }}_{{ item.port | default(omit) }}" # NXOS:Switchname ACI:APIC VMware:Vcenter
+    ansible_host: "{{ item.name }}" # NXOS:Switchname ACI:APIC VMware:Vcenter
+    ansible_user: "{{ item.username }}"
+    username: "{{ item.username }}"
+    ansible_password: "{{ item.password }}"
+    password: "{{ item.password }}"
+    validate_certs: false
+    switch: "{{ item.switch }}" # NXOS:Switchname ACI:Leaf ID vmware: dvswitch_name
+    switch2: "{{ item.switch2 | default(omit) }}" # NXOS:Switchname ACI:Leaf in a VPC configuration
+    interface: "{{ item.port | default(omit) }}" # Port that server is connected to. Could be a port-channel name
+    interface_policy_group: "{{ item.interface_policy_group | default(omit) }}" # Port that server is connected to in ACI if configured with Port-channel or VPC
+    port_type: "{{ item.port_type | default(omit) }}" # Port type: switch_port, Port-channel, VPC
+    source_vlan: "{{ source_vlan if source_vlan != 'prod' else item.prod_vlan | default(omit) }}" # VLAN/Encap that port started on
+    prod_vlan: "{{ item.prod_vlan | default(omit) }}" # VLAN/Encap that port started on
+    dest_vlan1: "{{ dest_vlan.split(',')[0] if dest_vlan != 'prod' else item.prod_vlan | default(omit) }}" # IRE VLAN/encap port is going to
+    dest_vlan2: "{{ dest_vlan.split(',')[1] | default(omit) }}" # NXOS: SubVLAN for private vlan
+    server: "{{ server_name }}" # Server that is being moved name/IP
+    ticket_url: "{{ ticket_url }}" # URL to post data to
+    platform: "{{ item.platform }}" # NXOS, ACI, VMware
+
+    # ACI Configs
+    tenant: "{{ item.tenant | default(omit) }}"
+    ap_profile: "{{ item.ap_profile | default(omit) }}"
+    source_epg: "{{ item.prod_epg | default(omit) }}"
+    dest_epg: "{{ ire_epg | default(omit) }}"
+    pod_id: "{{ item.pod_id | default(omit) }}"
+
+    # VMware Configs
+    prod_port_group: "{{ item.prod_port_group | default(omit) }}"
+    dest_port_group: "DPortGroup_{{ dest_phase | default(omit) }}"
+
+  loop: "{{ networks }}"
+  loop_control:
+    loop_var: item
