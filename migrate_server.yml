@@ -1,13 +1,9 @@
 ---
 - name: Pre Migration Ping Test
   hosts: localhost
-  gather_facts: false
+  gather_facts: true
   vars:
     ping_name: pre
-  tasks:
-    - name: Debug all variables
-      ansible.builtin.debug:
-        var: hostvars[inventory_hostname]
   roles:
     - ping_test
 
