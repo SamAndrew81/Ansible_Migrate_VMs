@@ -4,13 +4,24 @@
   gather_facts: false
 
   vars:
-    ee_image: "infraengco/andrew-ansible-ee:latest"  # Replace with your EE image and tag
+    ee_image: "your-execution-environment-image:tag"  # Replace with your EE image and tag
     pod_name: "ee-troubleshoot-pod"
     namespace: "awx"
-    kubeconfig_path: "/root/.kube/config"  # Specify your kubeconfig path
+    kubeconfig_path: "/root/.kube/config"
+    ansible_python_interpreter: "/root/ansible-lint-env/bin/python"  # Ensure this is the correct path to your Python interpreter
 
   tasks:
-    - name: Create EE pod
+    - name: Ensure kubeconfig file exists
+      ansible.builtin.stat:
+        path: "{{ kubeconfig_path }}"
+      register: kubeconfig_stat
+
+    - name: Fail if kubeconfig is not found
+      ansible.builtin.fail:
+        msg: "Kubeconfig file not found at {{ kubeconfig_path }}"
+      when: not kubeconfig_stat.stat.exists
+
+    - name: Create EE pod with necessary capabilities
       kubernetes.core.k8s:
         kubeconfig: "{{ kubeconfig_path }}"
         definition:
@@ -20,10 +31,15 @@
             name: "{{ pod_name }}"
             namespace: "{{ namespace }}"
           spec:
+            securityContext:
+              runAsUser: 0
             containers:
               - name: ee-container
                 image: "{{ ee_image }}"
                 command: ["/bin/sh", "-c", "while true; do sleep 86400; done"]
+                securityContext:
+                  capabilities:
+                    add: ["NET_RAW"]
       register: pod_result
 
     - name: Wait for pod to be ready
@@ -36,6 +52,15 @@
       until: pod_info.resources[0].status.phase == "Running"
       retries: 10
       delay: 30
+
+    - name: Install iputils in the pod
+      kubernetes.core.k8s_exec:
+        kubeconfig: "{{ kubeconfig_path }}"
+        namespace: "{{ namespace }}"
+        pod: "{{ pod_name }}"
+        container: ee-container
+        command: ["/bin/sh", "-c", "dnf install -y iputils"]
+      register: exec_result
 
     - name: Display pod information
       ansible.builtin.debug:
@@ -50,6 +75,6 @@
         msg:
           - "The EE pod is now running and will stay online indefinitely."
           - "You can access it using:"
-          - "kubectl exec -it {{ pod_name }} -n {{ namespace }} -- /bin/sh"
+          - "kubectl exec -it {{ pod_name }} -n {{ namespace }} -- /bin/bash"
           - "Remember to delete the pod when you're done:"
           - "kubectl delete pod {{ pod_name }} -n {{ namespace }}"
