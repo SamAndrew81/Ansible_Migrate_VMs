@@ -9,10 +9,6 @@
   ansible.builtin.debug:
     msg: "Target server: {{ server_name }}"
 
-- name: Show DNS configuration
-  ansible.builtin.command: cat /etc/resolv.conf
-  register: dns_config
-
 - name: Display DNS configuration
   ansible.builtin.debug:
     var: dns_config.stdout_lines
