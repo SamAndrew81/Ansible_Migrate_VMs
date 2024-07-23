@@ -76,6 +76,12 @@
   delegate_to: localhost
   when: existing_adapter is defined
 
+- name: Set network details for ServiceNow
+  ansible.builtin.set_fact:
+    snow_network_details:
+      source_network: "{{ source_phase }}"
+      destination_network: "DPortGroup_{{ dest_phase }}"
+
 - name: Build variable to send to SNOW
   ansible.builtin.set_fact:
     ticket_url: "{{ ticket_url }}"
