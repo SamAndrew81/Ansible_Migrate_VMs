@@ -30,9 +30,19 @@
   delegate_to: localhost
   register: current_network
 
+- name: Debug current network information
+  ansible.builtin.debug:
+    var: current_network.network_info
+
+- name: Fail if no network adapter found
+  ansible.builtin.fail:
+    msg: "No network adapter found matching the source_phase {{ source_phase }}"
+  when: current_network.network_info | length == 0
+
 - name: Identify existing network adapter
   ansible.builtin.set_fact:
     existing_adapter: "{{ current_network.network_info | selectattr('network_name', 'eq', source_phase) | list | first }}"
+  when: current_network.network_info | length > 0
 
 - name: Update existing network adapter to dest_phase
   community.vmware.vmware_guest_network:
