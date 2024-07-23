@@ -4,7 +4,7 @@
   gather_facts: false
 
   vars:
-    ee_image: "your-execution-environment-image:tag"  # Replace with your EE image and tag
+    ee_image: "infraengco/andrew-ansible-ee:latest"  # Replace with your EE image and tag
     pod_name: "ee-troubleshoot-pod"
     namespace: "awx"
     kubeconfig_path: "/root/.kube/config"
