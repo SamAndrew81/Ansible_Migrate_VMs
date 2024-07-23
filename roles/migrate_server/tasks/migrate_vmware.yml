@@ -32,9 +32,9 @@
 
 - name: Identify existing network adapter
   ansible.builtin.set_fact:
-    existing_adapter: "{{ current_network.network_info[0] }}"
+    existing_adapter: "{{ current_network.network_info | selectattr('network_name', 'eq', source_phase) | list | first }}"
 
-- name: Update existing network adapter
+- name: Update existing network adapter to dest_phase
   community.vmware.vmware_guest_network:
     hostname: "{{ ansible_host }}"
     username: "{{ username }}"
@@ -42,31 +42,13 @@
     validate_certs: false
     name: "{{ vm_to_move.guest_name }}"
     device_type: vmxnet3
-    network_name: "{{ dest_port_group }}"
+    network_name: "{{ dest_phase }}"
     mac_address: "{{ existing_adapter.mac_address }}"
     connected: true
     start_connected: true
     state: present
   delegate_to: localhost
   when: existing_adapter is defined
-
-- name: Restore VM to original port group
-  community.vmware.vmware_guest_network:
-    hostname: "{{ ansible_host }}"
-    username: "{{ username }}"
-    password: "{{ password }}"
-    validate_certs: false
-    name: "{{ vm_to_move.guest_name }}"
-    device_type: vmxnet3
-    network_name: "{{ networks[0].name }}"
-    mac_address: "{{ existing_adapter.mac_address }}"
-    connected: true
-    start_connected: true
-    state: present
-  delegate_to: localhost
-  when:
-    - existing_adapter is defined
-    - existing_adapter.network_name != networks[0].name
 
 - name: Build variable to send to SNOW
   ansible.builtin.set_fact:
