@@ -15,9 +15,18 @@
   ansible.builtin.debug:
     msg: "Ping command path: {{ ping_check.stdout }}"
 
-- name: Ping Server
+- name: Display environment variables
+  ansible.builtin.shell: env
+  register: env_vars
+  changed_when: false
+
+- name: Show environment variables
+  ansible.builtin.debug:
+    var: env_vars.stdout_lines
+
+- name: Ping Server using absolute path
   ansible.builtin.shell: |
-    ping -c2 "{{ server_name }}"
+    /usr/sbin/ping -c2 "{{ server_name }}"
   register: router_ping
   failed_when: router_ping.rc != 0
   changed_when: false
