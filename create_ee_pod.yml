@@ -7,11 +7,12 @@
     ee_image: "infraengco/andrew-ansible-ee:latest"  # Replace with your EE image and tag
     pod_name: "ee-troubleshoot-pod"
     namespace: "awx"
-    duration_minutes: 30
+    kubeconfig_path: "/path/to/your/kubeconfig"  # Specify your kubeconfig path
 
   tasks:
     - name: Create EE pod
       kubernetes.core.k8s:
+        kubeconfig: "{{ kubeconfig_path }}"
         definition:
           apiVersion: v1
           kind: Pod
@@ -22,11 +23,12 @@
             containers:
               - name: ee-container
                 image: "{{ ee_image }}"
-                command: ["/bin/sh", "-c", "sleep {{ duration_minutes | int * 60 }}"]
+                command: ["/bin/sh", "-c", "while true; do sleep 86400; done"]
       register: pod_result
 
     - name: Wait for pod to be ready
       kubernetes.core.k8s_info:
+        kubeconfig: "{{ kubeconfig_path }}"
         kind: Pod
         namespace: "{{ namespace }}"
         name: "{{ pod_name }}"
@@ -46,19 +48,8 @@
     - name: Provide instructions
       ansible.builtin.debug:
         msg:
-          - "The EE pod is now running and will be available for the next {{ duration_minutes }} minutes."
+          - "The EE pod is now running and will stay online indefinitely."
           - "You can access it using:"
           - "kubectl exec -it {{ pod_name }} -n {{ namespace }} -- /bin/sh"
           - "Remember to delete the pod when you're done:"
           - "kubectl delete pod {{ pod_name }} -n {{ namespace }}"
-
-    - name: Wait for pod duration
-      ansible.builtin.pause:
-        minutes: "{{ duration_minutes }}"
-
-    - name: Delete the pod
-      kubernetes.core.k8s:
-        state: absent
-        kind: Pod
-        name: "{{ pod_name }}"
-        namespace: "{{ namespace }}"
