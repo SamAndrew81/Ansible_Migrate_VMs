@@ -17,11 +17,6 @@
   ansible.builtin.debug:
     var: dns_config.stdout_lines
 
-- name: Attempt to get container IP (may fail in some environments)
-  ansible.builtin.shell: echo $(/sbin/ip -o -4 addr list | awk '{print $4}' | cut -d/ -f1 | tr '\n' ' ')
-  register: ip_info
-  ignore_errors: true
-
 - name: Display container IP information
   ansible.builtin.debug:
     var: ip_info.stdout_lines
