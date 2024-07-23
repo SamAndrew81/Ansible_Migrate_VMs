@@ -1,3 +1,11 @@
 {
-    "ansible.python.interpreterPath": "/Users/andrew/.pyenv/versions/3.9.2/bin/python"
+    "remote.SSH.remotePlatform": {
+        "192.168.3.60": "linux"
+    },
+    "redhat.telemetry.enabled": true,
+    "json.schemas": [],
+    "ansibleLint.path": "/root/ansible-lint-env/bin/ansible-lint",
+    "ansibleLint.options": "--nocolor -f codeclimate",
+    "python.pythonPath": "/root/ansible-lint-env/bin/python",
+    "ansible.python.interpreterPath": "/root/GitHub_repos/Ansible_Migrate_VMs/.venv/bin/python"
 }
