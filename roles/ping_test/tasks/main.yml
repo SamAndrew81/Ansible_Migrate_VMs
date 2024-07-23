@@ -9,10 +9,6 @@
   ansible.builtin.debug:
     msg: "Target server: {{ server_name }}"
 
-- name: Display DNS configuration
-  ansible.builtin.debug:
-    var: dns_config.stdout_lines
-
 - name: Ping target server
   ansible.builtin.shell: ping -c2 "{{ server_name }}" || echo "Ping failed"
   register: ping_result
