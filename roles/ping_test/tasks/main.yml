@@ -51,15 +51,6 @@
     post_ping_test_results_var: "{{ ping_result.stdout_lines | default([]) }}"
   when: ping_name == "post"
 
-- name: Summarize network diagnostics
-  ansible.builtin.debug:
-    msg: |
-      Network Diagnostics Summary:
-      1. DNS Configuration: {{ 'OK' if dns_config.rc == 0 else 'Failed' }}
-      2. Container IP: {{ ip_info.stdout if ip_info is success else 'Unable to determine' }}
-      3. Ping Test: {{ 'OK' if 'bytes from' in ping_result.stdout else 'Failed' }}
-      4. TCP Connection Test: {{ 'OK' if 'Connection successful' in tcp_test.stdout else 'Failed' }}
-
 - name: Fail if ping test unsuccessful
   ansible.builtin.fail:
     msg: "Ping test to {{ server_name }} failed. Please check network connectivity and firewall rules."
