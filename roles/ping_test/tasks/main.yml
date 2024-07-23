@@ -4,29 +4,9 @@
     msg: "Pinging {{ server_name }}"
   when: ping_test_server_name is defined
 
-- name: Check if ping command exists using type
+- name: Ping Server
   ansible.builtin.command:
-    cmd: type ping
-  register: ping_check
-  failed_when: ping_check.rc != 0
-  changed_when: false
-
-- name: Show ping command path
-  ansible.builtin.debug:
-    msg: "Ping command path: {{ ping_check.stdout }}"
-
-- name: Display environment variables
-  ansible.builtin.shell: env
-  register: env_vars
-  changed_when: false
-
-- name: Show environment variables
-  ansible.builtin.debug:
-    var: env_vars.stdout_lines
-
-- name: Ping Server using absolute path
-  ansible.builtin.shell: |
-    /usr/sbin/ping -c2 "{{ server_name }}"
+    cmd: ping -c2 "{{ server_name }}"
   register: router_ping
   failed_when: router_ping.rc != 0
   changed_when: false
