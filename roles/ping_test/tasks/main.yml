@@ -4,9 +4,20 @@
     msg: "Pinging {{ server_name }}"
   when: ping_test_server_name is defined
 
-- name: Ping Server
+- name: Check if ping command exists
   ansible.builtin.command:
-    cmd: ping -c2 "{{ server_name }}"
+    cmd: which ping
+  register: ping_check
+  failed_when: ping_check.rc != 0
+  changed_when: false
+
+- name: Show ping command path
+  ansible.builtin.debug:
+    msg: "Ping command path: {{ ping_check.stdout }}"
+
+- name: Ping Server
+  ansible.builtin.shell: |
+    ping -c2 "{{ server_name }}"
   register: router_ping
   failed_when: router_ping.rc != 0
   changed_when: false
