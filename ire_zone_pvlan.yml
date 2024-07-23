@@ -23,6 +23,7 @@ datacenter:
         tro_crdc_acl: 3701, 3501
         ire_restoration: 3702, 3502
         ire_app_validation: 3703, 3503
+        vm_network: 3704, 3504
       "04":
         tro_crdc_acl: 3704, 3504
         ire_restoration: 3705, 3505

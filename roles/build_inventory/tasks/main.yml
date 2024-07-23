@@ -25,25 +25,43 @@
           else 'IRE VLAN not found')
         }}
 
+# Debug source_phase
+- name: Debug source_phase
+  ansible.builtin.debug:
+    msg:
+      - "Source phase: {{ source_phase }}"
+
 # Create and set the 'source_vlan' var
 - name: Set IRE VLAN based on loaded data and extracted site/zone
   ansible.builtin.set_fact:
     source_vlan: >-
       {{
-        data['datacenter'][datacenter]['zones'][zone][source_phase|lower]
-        if source_phase|lower != 'prod'
-        else 'prod'
+        data['datacenter'][datacenter]['zones'][zone][source_phase | lower | replace(' ', '_')]
+        if source_phase | lower | replace(' ', '_') in data['datacenter'][datacenter]['zones'][zone]
+        else 'Source VLAN not found'
       }}
+
+# Debug source_vlan
+- name: Debug source_vlan
+  ansible.builtin.debug:
+    msg:
+      - "Source VLAN: {{ source_vlan }}"
 
 # Create and set the 'dest_vlan' var
 - name: Set IRE VLAN based on loaded data and extracted site/zone
   ansible.builtin.set_fact:
     dest_vlan: >-
       {{
-        data['datacenter'][datacenter]['zones'][zone][dest_phase|lower]
-        if dest_phase|lower != 'prod'
-        else 'prod'
+        data['datacenter'][datacenter]['zones'][zone][dest_phase | lower | replace(' ', '_')]
+        if dest_phase | lower | replace(' ', '_') in data['datacenter'][datacenter]['zones'][zone]
+        else 'Dest VLAN not found'
       }}
+
+# Debug dest_vlan
+- name: Debug dest_vlan
+  ansible.builtin.debug:
+    msg:
+      - "Dest VLAN: {{ dest_vlan }}"
 
 - name: Add switch-interface data to dynamic inventory
   ansible.builtin.add_host:
