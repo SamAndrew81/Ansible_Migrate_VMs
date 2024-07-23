@@ -12,9 +12,9 @@
   ansible.builtin.command:
     cmd: ping -c2 "{{ server_name }}"
   register: router_ping
-  failed_when: router_ping.rc != 0
-  changed_when: false
-  ignore_errors: true
+  # failed_when: router_ping.rc != 0
+  # changed_when: false
+  # ignore_errors: true
 
 - name: Save Ping Test Results as Artifacts
   ansible.builtin.set_stats:
