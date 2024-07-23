@@ -4,9 +4,9 @@
     msg: "Pinging {{ server_name }}"
   when: ping_test_server_name is defined
 
-- name: Check if ping command exists
+- name: Check if ping command exists using type
   ansible.builtin.command:
-    cmd: which ping
+    cmd: type ping
   register: ping_check
   failed_when: ping_check.rc != 0
   changed_when: false
