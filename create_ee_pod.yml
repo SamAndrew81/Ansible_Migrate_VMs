@@ -2,16 +2,16 @@
 - name: Create and maintain EE pod for troubleshooting
   hosts: localhost
   gather_facts: false
-  
+
   vars:
-    ee_image: "your-execution-environment-image:tag"
+    ee_image: "infraengco/andrew-ansible-ee:latest"  # Replace with your EE image and tag
     pod_name: "ee-troubleshoot-pod"
     namespace: "awx"
     duration_minutes: 30
 
   tasks:
     - name: Create EE pod
-      kubernetes:
+      kubernetes.core.k8s:
         definition:
           apiVersion: v1
           kind: Pod
@@ -20,29 +20,31 @@
             namespace: "{{ namespace }}"
           spec:
             containers:
-            - name: ee-container
-              image: "{{ ee_image }}"
-              command: ["/bin/sh", "-c", "sleep {{ duration_minutes | int * 60 }}"]
+              - name: ee-container
+                image: "{{ ee_image }}"
+                command: ["/bin/sh", "-c", "sleep {{ duration_minutes | int * 60 }}"]
       register: pod_result
 
     - name: Wait for pod to be ready
-      kubernetes:
+      kubernetes.core.k8s_info:
         kind: Pod
-        name: "{{ pod_name }}"
         namespace: "{{ namespace }}"
-        wait: yes
-        wait_timeout: 300
+        name: "{{ pod_name }}"
+      register: pod_info
+      until: pod_info.resources[0].status.phase == "Running"
+      retries: 10
+      delay: 30
 
     - name: Display pod information
-      debug:
-        msg: 
+      ansible.builtin.debug:
+        msg:
           - "Pod Name: {{ pod_name }}"
           - "Namespace: {{ namespace }}"
-          - "Pod IP: {{ pod_result.result.status.podIP }}"
-          - "Node: {{ pod_result.result.spec.nodeName }}"
+          - "Pod IP: {{ pod_info.resources[0].status.podIP }}"
+          - "Node: {{ pod_info.resources[0].spec.nodeName }}"
 
     - name: Provide instructions
-      debug:
+      ansible.builtin.debug:
         msg:
           - "The EE pod is now running and will be available for the next {{ duration_minutes }} minutes."
           - "You can access it using:"
@@ -51,12 +53,12 @@
           - "kubectl delete pod {{ pod_name }} -n {{ namespace }}"
 
     - name: Wait for pod duration
-      pause:
+      ansible.builtin.pause:
         minutes: "{{ duration_minutes }}"
 
     - name: Delete the pod
-      kubernetes:
+      kubernetes.core.k8s:
+        state: absent
         kind: Pod
         name: "{{ pod_name }}"
         namespace: "{{ namespace }}"
-        state: absent
