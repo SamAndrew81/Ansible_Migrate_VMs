@@ -20,7 +20,7 @@
 - name: Attempt to get container IP (may fail in some environments)
   ansible.builtin.shell: echo $(/sbin/ip -o -4 addr list | awk '{print $4}' | cut -d/ -f1 | tr '\n' ' ')
   register: ip_info
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Display container IP information
   ansible.builtin.debug:
@@ -74,4 +74,3 @@
   ansible.builtin.fail:
     msg: "Ping test to {{ server_name }} failed. Please check network connectivity and firewall rules."
   when: "'bytes from' not in ping_result.stdout"
-  
