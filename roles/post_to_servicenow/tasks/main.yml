@@ -33,24 +33,36 @@
   ansible.builtin.debug:
     var: server_var
 
+# Add source and destination network details
+- name: Set network details for ServiceNow
+  ansible.builtin.set_fact:
+    snow_data: >-
+      {{
+        {
+          "server_name": server_var.server_name,
+          "source_network": server_var.snow_network_details.source_network,
+          "destination_network": server_var.snow_network_details.destination_network,
+          "network_details": formatted_network_details
+        }
+      }}
+
+- name: Debug network details for SNOW
+  ansible.builtin.debug:
+    var: snow_data
+
 # Send structured data to SNOW using uri module
 - name: Send data to ServiceNow
   ansible.builtin.uri:
-    url: "{{ server_var.ticket_url }}"
+    url: "{{ snow_data.ticket_url }}"
     method: POST
-    body: >-
-      {{
-          {
-              'server_var': server_var
-          } | to_json
-      }}
+    body: "{{ snow_data | to_json }}"
     # url_username: "{{ snow_username }}"
     # url_password: "{{ snow_password }}"
     body_format: json
     headers:
       Content-Type: "application/json"
     validate_certs: false
-  when: server_var.ticket_url is defined and server_var.ticket_url | length > 0
+  when: snow_data.ticket_url is defined and snow_data.ticket_url | length > 0
   register: snow_response
 
 - name: Debug SNOW response
