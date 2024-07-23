@@ -17,11 +17,6 @@
   ansible.builtin.debug:
     var: dns_config.stdout_lines
 
-- name: Display container IP information
-  ansible.builtin.debug:
-    var: ip_info.stdout_lines
-  when: ip_info is success
-
 - name: Ping target server
   ansible.builtin.shell: ping -c2 "{{ server_name }}" || echo "Ping failed"
   register: ping_result
