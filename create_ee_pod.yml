@@ -1,0 +1,62 @@
+---
+- name: Create and maintain EE pod for troubleshooting
+  hosts: localhost
+  gather_facts: false
+  
+  vars:
+    ee_image: "your-execution-environment-image:tag"
+    pod_name: "ee-troubleshoot-pod"
+    namespace: "awx"
+    duration_minutes: 30
+
+  tasks:
+    - name: Create EE pod
+      kubernetes:
+        definition:
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: "{{ pod_name }}"
+            namespace: "{{ namespace }}"
+          spec:
+            containers:
+            - name: ee-container
+              image: "{{ ee_image }}"
+              command: ["/bin/sh", "-c", "sleep {{ duration_minutes | int * 60 }}"]
+      register: pod_result
+
+    - name: Wait for pod to be ready
+      kubernetes:
+        kind: Pod
+        name: "{{ pod_name }}"
+        namespace: "{{ namespace }}"
+        wait: yes
+        wait_timeout: 300
+
+    - name: Display pod information
+      debug:
+        msg: 
+          - "Pod Name: {{ pod_name }}"
+          - "Namespace: {{ namespace }}"
+          - "Pod IP: {{ pod_result.result.status.podIP }}"
+          - "Node: {{ pod_result.result.spec.nodeName }}"
+
+    - name: Provide instructions
+      debug:
+        msg:
+          - "The EE pod is now running and will be available for the next {{ duration_minutes }} minutes."
+          - "You can access it using:"
+          - "kubectl exec -it {{ pod_name }} -n {{ namespace }} -- /bin/sh"
+          - "Remember to delete the pod when you're done:"
+          - "kubectl delete pod {{ pod_name }} -n {{ namespace }}"
+
+    - name: Wait for pod duration
+      pause:
+        minutes: "{{ duration_minutes }}"
+
+    - name: Delete the pod
+      kubernetes:
+        kind: Pod
+        name: "{{ pod_name }}"
+        namespace: "{{ namespace }}"
+        state: absent
