@@ -1,37 +1,84 @@
 ---
-- name: Printing Server (debug)
+- name: Verify required variables
+  ansible.builtin.assert:
+    that:
+      - server_name is defined
+    msg: "server_name must be defined"
+
+- name: Printing target server
   ansible.builtin.debug:
-    msg: "Pinging {{ server_name }}"
-  when: server_name is defined
+    msg: "Target server: {{ server_name }}"
 
-- name: Show DNS server inside K8s EE pod
-  ansible.builtin.command:
-    cmd: cat /etc/resolv.conf
+- name: Show DNS configuration
+  ansible.builtin.command: cat /etc/resolv.conf
+  register: dns_config
 
-- name: Ping Server
-  ansible.builtin.command:
-    cmd: ping -c2 "{{ server_name }}"
-  register: router_ping
-  failed_when: router_ping.rc != 0
-  changed_when: false
-  ignore_errors: true
+- name: Display DNS configuration
+  ansible.builtin.debug:
+    var: dns_config.stdout_lines
 
-- name: Save Ping Test Results as Artifacts
+- name: Check network configuration
+  ansible.builtin.command: ip addr show
+  register: network_config
+
+- name: Display network configuration
+  ansible.builtin.debug:
+    var: network_config.stdout_lines
+
+- name: Test DNS resolution
+  ansible.builtin.command: nslookup example.com
+  register: dns_test
+  ignore_errors: yes
+
+- name: Display DNS test result
+  ansible.builtin.debug:
+    var: dns_test
+
+- name: Ping target server
+  ansible.builtin.command: ping -c2 "{{ server_name }}"
+  register: ping_result
+  ignore_errors: yes
+
+- name: Display ping result
+  ansible.builtin.debug:
+    var: ping_result
+
+- name: Test connection with netcat
+  ansible.builtin.command: nc -zv -w 2 {{ server_name }} 22
+  register: nc_result
+  ignore_errors: yes
+
+- name: Display netcat result
+  ansible.builtin.debug:
+    var: nc_result
+
+- name: Save ping test results as artifacts
   ansible.builtin.set_stats:
     data:
-      ping_test_results: "{{ router_ping.stdout_lines }}"
+      ping_test_results: "{{ ping_result.stdout_lines | default([]) }}"
     per_host: false
 
-- name: Save Pre Ping Test Results as Variable
+- name: Save pre-migration ping test results
   ansible.builtin.set_fact:
-    pre_ping_test_results_var: "{{ router_ping.stdout_lines }}"
+    pre_ping_test_results_var: "{{ ping_result.stdout_lines | default([]) }}"
   when: ping_name == "pre"
 
-- name: Save Post Ping Test Results as Variable
+- name: Save post-migration ping test results
   ansible.builtin.set_fact:
-    post_ping_test_results_var: "{{ router_ping.stdout_lines }}"
+    post_ping_test_results_var: "{{ ping_result.stdout_lines | default([]) }}"
   when: ping_name == "post"
 
-- name: Show Ping Test Results
+- name: Summarize network diagnostics
   ansible.builtin.debug:
-    msg: "{{ router_ping.stdout_lines }}"
+    msg: |
+      Network Diagnostics Summary:
+      1. DNS Configuration: {{ 'OK' if dns_config.rc == 0 else 'Failed' }}
+      2. Network Configuration: {{ 'OK' if network_config.rc == 0 else 'Failed' }}
+      3. DNS Resolution Test: {{ 'OK' if dns_test.rc == 0 else 'Failed' }}
+      4. Ping Test: {{ 'OK' if ping_result.rc == 0 else 'Failed' }}
+      5. Netcat Test: {{ 'OK' if nc_result.rc == 0 else 'Failed' }}
+
+- name: Fail if ping test unsuccessful
+  ansible.builtin.fail:
+    msg: "Ping test to {{ server_name }} failed. Please check network connectivity and firewall rules."
+  when: ping_result.rc != 0
