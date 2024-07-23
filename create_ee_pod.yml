@@ -7,7 +7,7 @@
     ee_image: "infraengco/andrew-ansible-ee:latest"  # Replace with your EE image and tag
     pod_name: "ee-troubleshoot-pod"
     namespace: "awx"
-    kubeconfig_path: "/path/to/your/kubeconfig"  # Specify your kubeconfig path
+    kubeconfig_path: "/root/.kube/config"  # Specify your kubeconfig path
 
   tasks:
     - name: Create EE pod
