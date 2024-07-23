@@ -34,6 +34,10 @@
   ansible.builtin.debug:
     var: current_network.network_info
 
+- name: Set source_phase based on current network information
+  ansible.builtin.set_fact:
+    source_phase: "{{ current_network.network_info[0].network_name }}"
+
 - name: Fail if no network adapter found
   ansible.builtin.fail:
     msg: "No network adapter found matching the source_phase {{ source_phase }}"
