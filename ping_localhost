@@ -1,0 +1,45 @@
+---
+- name: Ping Localhost and 127.0.0.1
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Show the which ping command
+      ansible.builtin.command:
+        cmd: which ping
+      register: which_ping_result
+
+    - name: Display the location of the ping command
+      ansible.builtin.debug:
+        var: which_ping_result.stdout
+
+    - name: Show the location of the ping command using 'command -v'
+      ansible.builtin.command:
+        cmd: command -v ping
+      register: command_v_ping_result
+
+    - name: Display the location of the ping command using 'command -v'
+      ansible.builtin.debug:
+        var: command_v_ping_result.stdout
+
+    - name: Show the location of the ping command using 'type'
+      ansible.builtin.shell:
+        cmd: type ping
+      register: type_ping_result
+
+    - name: Display the location of the ping command using 'type'
+      ansible.builtin.debug:
+        var: type_ping_result.stdout
+
+    - name: Ping localhost
+      ansible.builtin.ping:
+      delegate_to: localhost
+
+    - name: Ping 127.0.0.1
+      ansible.builtin.command:
+        cmd: ping -c 2 127.0.0.1
+      register: ping_result
+
+    - name: Display ping result
+      ansible.builtin.debug:
+        var: ping_result.stdout
