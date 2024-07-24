@@ -4,15 +4,6 @@
   gather_facts: false
 
   tasks:
-    - name: Show the which ping command
-      ansible.builtin.command:
-        cmd: which ping
-      register: which_ping_result
-
-    - name: Display the location of the ping command
-      ansible.builtin.debug:
-        var: which_ping_result.stdout
-
     - name: Show the location of the ping command using 'command -v'
       ansible.builtin.command:
         cmd: command -v ping
