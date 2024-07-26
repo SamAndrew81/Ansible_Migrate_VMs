@@ -22,11 +22,6 @@
       ansible.builtin.debug:
         var: type_ping_result.stdout
 
-    - name: Wait for 30 minutes
-      ansible.builtin.pause:
-        minutes: 30
-        prompt: "Pausing for 30 minutes. You can kubectl exec -it into the pod during this time."
-
     - name: Ping localhost
       ansible.builtin.ping:
       delegate_to: localhost
@@ -39,3 +34,8 @@
     - name: Display ping result
       ansible.builtin.debug:
         var: ping_result.stdout
+
+    - name: Wait for 30 minutes
+      ansible.builtin.pause:
+        minutes: 30
+        prompt: "Pausing for 30 minutes. You can kubectl exec -it into the pod during this time."

@@ -1,21 +1,16 @@
 ---
 version: 3
+
 images:
   base_image:
     name: quay.io/centos/centos:stream9
+
 dependencies:
-  system: |
-    git
-    python3-devel
-    gcc
-    iputils  # Added to include the ping command
   ansible_core:
-    # Require minimum of 2.15 to get ansible-inventory --limit option
     package_pip: ansible-core>=2.15.0rc2,<2.16
   ansible_runner:
     package_pip: ansible-runner
-  galaxy: |
-    ---
+  galaxy:
     collections:
       - name: awx.awx
       - name: community.vmware
@@ -25,6 +20,24 @@ dependencies:
       - name: ansible.posix
       - name: ansible.windows
       - name: redhatinsights.insights
-  python: |
-    paramiko
-    pymssql
+  python:
+    - paramiko
+    - pymssql
+    - git+https://github.com/vmware/vsphere-automation-sdk-python.git
+  system:
+    - dnf-plugins-core
+    - git
+    - python3-devel
+    - gcc
+    - iputils
+
+additional_build_steps:
+  prepend_base:
+    - RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    - RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    - RUN rm kubectl
+  append_final:
+    - RUN pip install --upgrade pip
+    
+options:
+  package_manager_path: /usr/bin/dnf
