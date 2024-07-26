@@ -4,6 +4,35 @@
   gather_facts: false
 
   tasks:
+  # Networking tasks
+    - name: Check network interfaces
+      ansible.builtin.command:
+        cmd: ip addr
+      register: ip_addr_result
+
+    - name: Display network interfaces
+      ansible.builtin.debug:
+        var: ip_addr_result.stdout_lines
+
+    - name: Check routing table
+      ansible.builtin.command:
+        cmd: route -n
+      register: route_result
+
+    - name: Display routing table
+      ansible.builtin.debug:
+        var: route_result.stdout_lines
+
+# PING tasks
+    - name: Check ping permissions
+      ansible.builtin.command:
+        cmd: ls -l /usr/sbin/ping
+      register: ping_permissions
+
+    - name: Display ping permissions
+      ansible.builtin.debug:
+        var: ping_permissions.stdout
+    
     - name: Show the location of the ping command using 'command -v'
       ansible.builtin.command:
         cmd: command -v ping
@@ -22,10 +51,6 @@
       ansible.builtin.debug:
         var: type_ping_result.stdout
 
-    - name: Ping localhost
-      ansible.builtin.ping:
-      delegate_to: localhost
-
     - name: Ping 127.0.0.1
       ansible.builtin.command:
         cmd: ping -c 2 127.0.0.1
@@ -35,7 +60,3 @@
       ansible.builtin.debug:
         var: ping_result.stdout
 
-    - name: Wait for 30 minutes
-      ansible.builtin.pause:
-        minutes: 30
-        prompt: "Pausing for 30 minutes. You can kubectl exec -it into the pod during this time."

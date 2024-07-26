@@ -1,0 +1,10 @@
+---
+- name: Long-running execution-environment pod in K8s
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Wait for 30 minutes
+      ansible.builtin.pause:
+        minutes: 30
+        prompt: "Pausing for 30 minutes. You can kubectl exec -it into the pod during this time."
