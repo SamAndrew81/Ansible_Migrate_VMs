@@ -96,7 +96,7 @@
 
     # VMware Configs
     prod_port_group: "{{ item.prod_port_group | default(omit) }}"
-    dest_port_group: "DPortGroup_{{ dest_phase | default(omit) }}"
+    dest_port_group: "{{ dest_phase | default(omit) }}"
 
   loop: "{{ networks }}"
   loop_control:
