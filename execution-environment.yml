@@ -30,14 +30,19 @@ dependencies:
     - python3-devel
     - gcc
     - iputils
+    - iproute
+    - libcap
+    - net-tools
 
 additional_build_steps:
   prepend_base:
     - RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
     - RUN install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
     - RUN rm kubectl
+    - RUN dnf install -y iputils iproute
+    - RUN setcap cap_net_raw+ep /usr/bin/ping
   append_final:
     - RUN pip install --upgrade pip
-    
+
 options:
   package_manager_path: /usr/bin/dnf
