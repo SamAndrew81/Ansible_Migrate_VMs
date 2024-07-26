@@ -7,12 +7,12 @@
   # Networking tasks
     - name: Check network interfaces
       ansible.builtin.command:
-        cmd: ip addr
-      register: ip_addr_result
+        cmd: ifconfig
+      register: ifconfig_result
 
     - name: Display network interfaces
       ansible.builtin.debug:
-        var: ip_addr_result.stdout_lines
+        var: ifconfig_result.stdout_lines
 
     - name: Check routing table
       ansible.builtin.command:
