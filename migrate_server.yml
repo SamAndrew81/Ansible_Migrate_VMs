@@ -21,6 +21,12 @@
   roles:
     - migrate_server
 
+- name: Set post Migration Ping Var
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - set_migration_vars
+
 - name: After Migration Ping Test
   hosts: localhost
   gather_facts: false
@@ -28,12 +34,6 @@
     ping_name: post
   roles:
     - ping_test
-
-- name: Set post Migration Ping Var
-  hosts: localhost
-  gather_facts: false
-  roles:
-    - set_migration_vars
 
 - name: Post server info to ServiceNow
   hosts: localhost
